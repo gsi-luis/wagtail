@@ -1,5 +1,5 @@
 
-## Django Learning
+## Watgail Learning
 
 ### Installation for development using Docker and Docker-compose
 
@@ -53,7 +53,7 @@
 #### Clone repository
 
 ````
-git clone https://gitlab.generalsoftwareinc.com/internals/api.git
+git clone https://github.com/gsi-luis/wagtail.git
 ````
 
 #### Structure of project
