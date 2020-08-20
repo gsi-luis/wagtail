@@ -1,0 +1,22 @@
+# pull python learning base image
+FROM wagtaillearning-api-base
+
+RUN apk add libjpeg jpeg-dev zlib zlib-dev
+RUN apk add libffi-dev
+
+# install dependencies
+COPY ./src/requirements .
+
+
+RUN pip install -r dev.txt
+
+
+# set work directory
+WORKDIR /opt/services/wagtailapp/src
+
+ADD ./config/dev/api/entrypoint.sh /entrypoint.sh
+RUN chmod 755 /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# run entrypoint.sh
+ENTRYPOINT ["sh","/entrypoint.sh"]

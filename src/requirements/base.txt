@@ -1,0 +1,11 @@
+Django>=3.1,<3.2
+wagtail>=2.10,<2.11
+gunicorn==20.0.4
+psycopg2-binary==2.8.5
+python-decouple==3.3
+requests==2.24.0
+redis==3.5.3
+celery==4.4.6
+flower==0.9.5
+django_celery_results==1.2.1
+wagtail_modeltranslation==0.10.14

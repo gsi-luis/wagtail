@@ -1,0 +1,116 @@
+version: '2'
+
+services:
+  wagtaillearning_api_postgres:
+    image: ${IMAGE_POSTGIS_NAME}
+    container_name: ${CONTAINER_POSTGIS_NAME}
+    restart: unless-stopped
+    environment:
+      POSTGRES_MULTIPLE_DATABASES: qa,dev,staging
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      TZ: ${TZ}
+    volumes:
+      - wagtaillearning_api_postgis_volume:/data/postgres
+      - ./../../config/dev/postgis/docker-entrypoint-initdb.d/postgis.sh:/docker-entrypoint-initdb.d/postgis.sh
+    networks:
+      wagtaillearning_api_network:
+        aliases:
+          - ${CONTAINER_POSTGIS_NAME}
+        ipv4_address: 172.72.0.4
+
+  wagtaillearning_api_redis:
+    container_name: ${CONTAINER_REDIS_NAME}
+    image: redis
+    restart: always
+    volumes:
+      - wagtaillearning_api_redis_volume:/data
+    expose:
+      - 6379
+    networks:
+      wagtaillearning_api_network:
+        aliases:
+          - ${CONTAINER_REDIS_NAME}
+        ipv4_address: 172.72.0.5
+
+  wagtaillearning_api:
+    image: ${IMAGE_PYTHON_API_NAME}
+    container_name: ${CONTAINER_API_NAME}
+    restart: always
+    volumes:
+      - ./../../:/opt/services/wagtailapp
+      - ./../../config/dev/api/entrypoint.sh:/entrypoint.sh
+      - ./../../config/dev/supervisor/supervisord.conf:/etc/supervisord.conf
+      - ./../../src/requirements/dev.txt:/dev.txt
+      - ./../../src/requirements/base.txt:/base.txt
+      - ./../../config/dev/supervisor/conf.d/:/etc/supervisor/conf.d/
+      - wagtaillearning_api_static_volume:/opt/services/wagtailapp/src/static  # <-- bind the static volume
+      - wagtaillearning_api_media_volume:/opt/services/wagtailapp/src/media  # <-- bind the media volume
+      - wagtaillearning_api_logs_volume:/opt/services/wagtailapp/src/logs
+    expose:
+      - 8000
+    networks:
+      wagtaillearning_api_network:
+        aliases:
+          - ${CONTAINER_API_NAME}
+        ipv4_address: 172.72.0.2
+    depends_on:
+      - wagtaillearning_api_postgres
+      - wagtaillearning_api_redis
+
+  wagtaillearning_api_nginx:
+    image: nginx:alpine
+    container_name: ${CONTAINER_NGINX_NAME}
+    restart: always
+    volumes:
+      - ./../../config/dev/nginx/conf.d/:/etc/nginx/conf.d
+      - ./../../config/dev/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - wagtaillearning_api_static_volume:/opt/services/wagtailapp/src/static  # <-- bind the static volume
+      - wagtaillearning_api_media_volume:/opt/services/wagtailapp/src/media  # <-- bind the media volume
+    depends_on:
+      - wagtaillearning_api
+    networks:
+      wagtaillearning_api_network:
+        aliases:
+          - ${CONTAINER_NGINX_NAME}
+        ipv4_address: 172.72.0.3
+
+  wagtaillearning_api_flower:
+    image: mher/flower:0.9.5
+    container_name: ${CONTAINER_FLOWER_NAME}
+    command: ["flower"]
+    environment:
+      CELERY_BROKER_URL: redis://wagtaillearning_api_redis:6379/0
+      CELERY_RESULT_BACKEND: redis://wagtaillearning_api_redis:6379/1
+      FLOWER_PORT: 5555
+      FLOWER_BASIC_AUTH: celery:celerymonitor
+    volumes:
+      - wagtaillearning_api_flower_volume:/data  # <-- bind the media volume
+    working_dir: /data
+    expose:
+      - 5555
+    depends_on:
+      - wagtaillearning_api
+      - wagtaillearning_api_redis
+    networks:
+      wagtaillearning_api_network:
+        aliases:
+          - ${CONTAINER_FLOWER_NAME}
+        ipv4_address: 172.72.0.6
+
+networks:
+  wagtaillearning_api_network:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 172.72.0.0/16
+
+volumes:
+  wagtaillearning_api_static_volume: # <-- declare the static volume
+  wagtaillearning_api_media_volume:  # <-- declare the static volume
+  wagtaillearning_api_logs_volume:  # <-- declare the logs volume
+  wagtaillearning_api_postgis_volume:  # <-- declare the postgis volume
+  wagtaillearning_api_flower_volume:  # <-- declare the flower volume
+  wagtaillearning_api_pgadmin_volume:  # <-- declare the pgadmin volume
+  wagtaillearning_api_redis_volume:  # <-- declare the redis volume

@@ -1,0 +1,4 @@
+-r base.txt # includes all dependencies in base.txt
+
+
+# specific dependencies only used in dev env

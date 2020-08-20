@@ -1,0 +1,41 @@
+# pull official base image
+FROM python:3.8.3-alpine
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# install psycopg2 dependencies
+RUN apk update
+RUN apk add postgresql-dev
+RUN apk add gcc
+RUN apk add python3-dev
+RUN apk add musl-dev
+RUN apk add supervisor
+RUN apk add libffi-dev
+RUN apk add file make
+RUN apk add nano git
+
+RUN mkdir -p /var/log/supervisor && \
+    mkdir -p /var/log/supervisor/conf.d && \
+    mkdir -p /opt/services/wagtailapp/src/logs && \
+    mkdir -p /opt/services/wagtailapp/src/logs/gunicorn
+
+# support for internationalization
+RUN apk add gettext
+
+# support for generate pdf file
+RUN apk add libgcc \
+    libstdc++ \
+    libx11 \
+    glib \
+    libxrender \
+    libxext \
+    libintl \
+    ttf-dejavu \
+    ttf-droid \
+    ttf-freefont \
+    ttf-liberation \
+    ttf-ubuntu-font-family
+
+RUN pip install --upgrade pip
