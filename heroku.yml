@@ -1,0 +1,17 @@
+build:
+  docker:
+    docker_postgis: Dockerfile/heroku/DockerfileDB
+    docker_redis: Dockerfile/heroku/DockerfileRedis
+    docker_flower: Dockerfile/heroku/DockerfileFlower
+    docker_wagtail: Dockerfile/heroku/DockerfileWagtail
+    docker_nginx: Dockerfile/heroku/DockerfileNginx
+
+release:
+  image: docker_postgis
+  image: docker_redis
+  image: docker_flower
+  image: docker_wagtail
+  image: docker_nginx
+
+run:
+  docker_flower: flower

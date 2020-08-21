@@ -1,0 +1,11 @@
+FROM mher/flower:0.9.5
+
+
+ENV CELERY_BROKER_URL: redis://docker_redis:6379/0 \
+    CELERY_RESULT_BACKEND: redis://docker_redis:6379/1 \
+    FLOWER_PORT: 5555 \
+    FLOWER_BASIC_AUTH: celery:celerymonitor
+
+
+EXPOSE 5555
+

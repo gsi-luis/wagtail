@@ -1,0 +1,13 @@
+FROM nginx:alpine
+
+LABEL version="0.1" \
+      description="Goheavy Nginx"
+
+COPY ./config/dev/nginx/conf.d /etc/nginx/conf.d
+
+COPY ./config/dev/nginx/nginx.conf:/etc/nginx/nginx.conf
+
+RUN mkdir -p /opt/services/wagtailapp/src/static
+RUN mkdir -p /opt/services/wagtailapp/src/media
+
+EXPOSE 6379
